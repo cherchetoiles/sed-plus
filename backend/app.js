@@ -3,6 +3,7 @@ import cors from 'cors';
 import testRoutes from './routes/test.routes.js';
 import indexRoutes from './routes/index.js';
 import professionalsRoutes from './routes/professionals.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api', indexRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/professionals', professionalsRoutes);
+app.use('/api/users', userRoutes);
 
 
 export default app;
