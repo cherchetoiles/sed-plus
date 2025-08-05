@@ -1,9 +1,12 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import testRoutes from './routes/test.routes.js';
 import indexRoutes from './routes/index.js';
 import professionalsRoutes from './routes/professionals.routes.js';
 import userRoutes from './routes/user.routes.js';
+
+dotenv.config();
 
 const app = express();
 
