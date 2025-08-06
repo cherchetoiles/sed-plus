@@ -1,8 +1,9 @@
-import express from 'express';
-import { createUserWithGoogle } from '../controllers/user.controller.js';
+import { Router } from 'express';
+import { registerUser, loginUser } from '../controllers/user.controller.js';
 
-const router = express.Router();
+const router = Router();
 
-router.post('/google', createUserWithGoogle);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
 export default router;

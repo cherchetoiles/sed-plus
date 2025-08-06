@@ -1,48 +1,78 @@
 'use client';
-import { useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+
+import { useRouter } from 'next/navigation';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import app from '@/lib/firebase';
 import axios from 'axios';
-
-// Configuration Firebase
-const firebaseConfig = {
-  apiKey: 'AIzaSyCqI9svgTf2pS25i1tJXLhPri-AmrDk_3I',
-  authDomain: 'sed-plus.firebaseapp.com',
-  projectId: 'sed-plus',
-  storageBucket: 'sed-plus.appspot.com',
-  messagingSenderId: '459294820128',
-  appId: '1:459294820128:web:f61925409903bceedc3945',
-};
-
-const app = initializeApp(firebaseConfig);
+import { useState } from 'react';
 
 export default function LoginPage() {
-  const handleLogin = async () => {
-    const auth = getAuth();
-    const provider = new GoogleAuthProvider();
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const router = useRouter();
+  const [message, setMessage] = useState('');
 
+  const handleAuth = async (type) => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Appel backend pour créer ou retrouver l'utilisateur
-      const response = await axios.post('http://localhost:5000/api/users/google', {
+      const payload = {
         email: user.email,
         name: user.displayName,
         googleId: user.uid,
-      });
+      };
 
-      alert(`✅ Bienvenue ${response.data.name || response.data.email} !`);
-    } catch (error) {
-      console.error('❌ Erreur de connexion Google :', error);
-      alert('Erreur lors de la connexion.');
+      if (type === 'signup') {
+        try {
+          await axios.post('http://localhost:5000/api/users', payload);
+          router.push('/profil');
+        } catch (err) {
+          if (err.response?.status === 404) {
+            setMessage('Vous possédez déjà un compte.');
+          } else {
+            setMessage(err.response?.data?.error || "Une erreur est survenue.");
+          }
+        }
+      } else if (type === 'login') {
+        try {
+          const res = await axios.get(`http://localhost:5000/api/users/${user.email}`);
+          if (res.data) {
+            router.push('/profil');
+          }
+        } catch (err) {
+          if (err.response?.status === 404) {
+            setMessage("Vous n’êtes pas inscrit.");
+          } else {
+            setMessage(err.response?.data?.error || "Une erreur est survenue.");
+          }
+        }
+      }
+    } catch (err) {
+      setMessage("Erreur lors de l'authentification Google.");
     }
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h1>Connexion</h1>
-      <button onClick={handleLogin}>Se connecter avec Google</button>
+    <div className="text-center mt-10">
+      <h1 className="text-2xl font-semibold mb-6">Bienvenue !</h1>
+      <button
+        onClick={() => handleAuth('login')}
+        className="bg-blue-500 text-white px-4 py-2 rounded m-2"
+      >
+        Se connecter avec Google
+      </button>
+      <button
+        onClick={() => handleAuth('signup')}
+        className="bg-green-500 text-white px-4 py-2 rounded m-2"
+      >
+        S’inscrire avec Google
+      </button>
+      {message && (
+        <p className="mt-4 text-red-500 font-medium">
+          {message}
+        </p>
+      )}
     </div>
   );
 }
